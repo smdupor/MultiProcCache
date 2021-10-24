@@ -21,6 +21,7 @@ private:
    void mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local);
    void dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local);
    CacheController(uint_fast32_t size, uint_fast32_t assoc, uint_fast32_t blocksize, uint_fast8_t num_caches, uint_fast8_t coherence_type);
+   int count[30];
 
 public:
 

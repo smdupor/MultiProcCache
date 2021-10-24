@@ -81,6 +81,8 @@ public:
    ulong getRM(){return read_misses;} ulong getWM(){return write_misses;}
    ulong getReads(){return reads;}ulong getWrites(){return writes;}
    ulong getWB(){return write_backs;}
+
+   uint_fast32_t getFU() {return interventions;}
    
    void writeBack(ulong)   {write_backs++;++memtraffic;}
    void Access(ulong,uchar);
@@ -92,6 +94,7 @@ public:
    void updateLRU(cacheLine *);
 
    void flush() {++flushes;}
+   void flush_mesi() {++flushes;++write_backs;}
    void bus_rdx() {++busrdx;}
    void transfer() {++cc_transfers;}
 
