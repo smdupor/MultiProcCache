@@ -76,7 +76,7 @@ void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool wri
       // Case Write and multiple procs in S inclusive of this proc
       else if(local[proc]) {
          for(cacheLine *l : local){
-            if(l->get_proc() != proc) {
+            if(l && l->get_proc() != proc) {
                caches[l->get_proc()].invalidate();
                l->invalidate();
             }
@@ -87,7 +87,7 @@ void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool wri
       // Case write, other procs in S, this proc invalid
       else{
          for(cacheLine *l : local){
-            if(l->get_proc() != proc) {
+            if(l && l->get_proc() != proc) {
                caches[l->get_proc()].invalidate();
                l->invalidate();
             }

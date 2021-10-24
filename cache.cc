@@ -180,6 +180,8 @@ void Cache::printStats()
    cat_padded(&output, this->flushes);
    output += "12. number of BusRdX:                           ";
    cat_padded(&output, this->busrdx);
+   std::cout << output;
+
 }
 
 // Attach a numeric value to the end of a string with space padding

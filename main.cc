@@ -82,14 +82,16 @@ int main(int argc, char *argv[])
    uint_fast32_t addr;
    uint_fast8_t rw, pr;
 
+   uint_fast32_t count = 0;
    while (fscanf(FP, "%s %s %lx", stra, strb, &addr) != EOF) {
       rw = strb[0];
       *prc = stra[0];
       pr = (uint_fast8_t ) strtoul((const char *) prc, NULL, 0);
       if (rw == 'r')
-         c->access(addr, pr, true);
-      else if (rw == 'w')
          c->access(addr, pr, false);
+      else if (rw == 'w')
+         c->access(addr, pr, true);
+      ++count;
    }
 
 	fclose(FP);
