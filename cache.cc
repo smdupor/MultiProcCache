@@ -52,8 +52,7 @@ since this function is an entry point
 to the memory hierarchy (i.e. caches)**/
 void Cache::Access(ulong addr,uchar op)
 {
-	currentCycle++;/*per cache global counter to maintain LRU order 
-			among cache ways, updated on every cache access*/
+	currentCycle++;
         	
 	if(op == 'w') writes++;
 	else          reads++;
@@ -64,6 +63,7 @@ void Cache::Access(ulong addr,uchar op)
 		if(op == 'w') write_misses++;
 		else read_misses++;
 
+      ++memtraffic;
 		cacheLine *newline = fillLine(addr);
    		if(op == 'w') newline->setFlags(DIRTY);    
 		
@@ -193,8 +193,13 @@ void Cache::cat_padded(std::string *str, uint_fast32_t n) {
    *str += value;
 }
 
-void Cache::invalidate() {
+void Cache::invalidate(uint_fast32_t addr) {
    ++this->invalidations;
+   cacheLine *l = findLine(addr);
+   if(l->getFlags()==DIRTY)
+      writeBack(addr);
+   l->setFlags(INVALID);
+   l->set_state(INVALID);
 }
 
 void Cache::intervention() {

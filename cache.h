@@ -80,9 +80,9 @@ public:
    ulong getReads(){return reads;}ulong getWrites(){return writes;}
    ulong getWB(){return write_backs;}
    
-   void writeBack(ulong)   {write_backs++;}
+   void writeBack(ulong)   {write_backs++;++memtraffic;}
    void Access(ulong,uchar);
-   void invalidate();
+   void invalidate(uint_fast32_t addr);
    void intervention();
 
    void printStats();

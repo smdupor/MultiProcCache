@@ -59,54 +59,61 @@ void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool wri
 
       // Case Write and (other) proc is in M
       else {
-         caches[Mloc->get_proc()].writeBack(addr);
-         caches[Mloc->get_proc()].invalidate();
+         //caches[Mloc->get_proc()].writeBack(addr);
+         caches[Mloc->get_proc()].invalidate(addr);
          Mloc->invalidate();
+         caches[Mloc->get_proc()].flush();
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(M);
+         caches[proc].bus_rdx();
          caches[proc].Access(addr, 'w');
+
       }
    }
    else if(write && has_S) {
       // Case write and This proc is the ONLY S
       if (local[proc] && local[proc]->get_state() == S && num_s == 1) {
          caches[proc].Access(addr, 'w');
+         caches[proc].bus_rdx();
          local[proc]->set_state(M);    //BusUpgr ... intervention?
       }
       // Case Write and multiple procs in S inclusive of this proc
       else if(local[proc]) {
          for(cacheLine *l : local){
             if(l && l->get_proc() != proc) {
-               caches[l->get_proc()].invalidate();
+               caches[l->get_proc()].invalidate(addr);
                l->invalidate();
             }
          }
          local[proc]->set_state(M);
+         caches[proc].bus_rdx();
          caches[proc].Access(addr, 'w');
       }
       // Case write, other procs in S, this proc invalid
       else{
          for(cacheLine *l : local){
             if(l && l->get_proc() != proc) {
-               caches[l->get_proc()].invalidate();
+               caches[l->get_proc()].invalidate(addr);
                l->invalidate();
             }
          }
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(M);
+         caches[proc].bus_rdx();
          caches[proc].Access(addr, 'w');
       }
    }
-   else if (write && !has_M && !has_S){
+   else if (write && !has_M && !has_S){ // case write, all invalid
       local[proc]=caches[proc].findLineToReplace(addr);
       local[proc]->set_state(M);
+      caches[proc].bus_rdx();
       caches[proc].Access(addr, 'w');
    }
    else if(!write && has_S){
-      if(local[proc]) {
+      if(local[proc]) { // case read and this proc in S
          caches[proc].Access(addr, 'r');
       }
-      else{
+      else{ // case read and other procs in S, this proc invalid
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(S);
          caches[proc].Access(addr, 'r');
@@ -119,15 +126,17 @@ void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool wri
 
          // Case rd and (other) proc is in M
       else {
-         caches[Mloc->get_proc()].writeBack(addr);
-         caches[Mloc->get_proc()].invalidate();
-         Mloc->invalidate();
+         //caches[Mloc->get_proc()].writeBack(addr);
+         caches[Mloc->get_proc()].invalidate(addr);
+         caches[Mloc->get_proc()].intervention();
+         caches[Mloc->get_proc()].flush();
+//         Mloc->invalidate();
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(S);
          caches[proc].Access(addr, 'r');
       }
    }
-   else{
+   else{ // case rd and all invalid
       local[proc]=caches[proc].findLineToReplace(addr);
       local[proc]->set_state(S);
       caches[proc].Access(addr, 'r');
