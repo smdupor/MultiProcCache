@@ -196,21 +196,22 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       // Case write and This proc is the ONLY E
       if (local[proc] && has_E) {
          caches[proc].Access(addr, 'w');
-         local[proc]->set_state(M);    //BusUpgr ... intervention?
-         caches[proc].intervention_mesi();
+         local[proc]->set_state(M);
+         //caches[proc].intervention_mesi();
          count[2]++;
       }
-         // Case Write and multiple procs in S inclusive of this proc
+         // Case Write and multiple procs in S including this
       else if(local[proc]) {
 
          for(cacheLine *l : local){
             if(l && l->get_proc() != proc) {
                caches[l->get_proc()].invalidate(addr);
+               count[11]++;
                l->invalidate();
             }
          }
          local[proc]->set_state(M);
-         caches[proc].intervention_mesi(); // has 18
+        caches[proc].intervention_mesi();
 
          caches[proc].Access(addr, 'w');
          count[3]++;
@@ -221,6 +222,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
             if(l && l->get_proc() != proc) {
                caches[l->get_proc()].invalidate(addr);
                l->invalidate();
+               count[12]++;
             }
          }
          local[proc]=caches[proc].findLineToReplace(addr);
@@ -236,7 +238,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       local[proc]=caches[proc].findLineToReplace(addr);
       local[proc]->set_state(M);
       caches[proc].bus_rdx();
-      caches[proc].intervention_mesi(); // has 3
+      //caches[proc].intervention_mesi(); // has 3
       caches[proc].Access(addr, 'w');
       count[5]++;
    }
@@ -248,9 +250,10 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       else{ // case read and other procs in S or e, this proc invalid
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(S);
-         if(Eloc)
+         if(Eloc) {
             Eloc->set_state(S);
-         // has 18-192
+            count[13]++;
+         }
          //caches[proc].intervention_mesi();
          caches[proc].transfer();
          caches[proc].Access(addr, 'r');
@@ -265,18 +268,13 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       }
          // Case rd and (other) proc is in M
       else {
-         //caches[Mloc->get_proc()].writeBack(addr);
-         //caches[Mloc->get_proc()].invalidate(addr);
          Mloc->set_state(S);
          Mloc->setFlags(VALID);
-         //caches[Mloc->get_proc()].intervention();
-
+         //caches[proc].intervention_mesi();
          caches[Mloc->get_proc()].flush_mesi();
-//         Mloc->invalidate();
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(S);
          caches[proc].transfer();
-// not reach
          caches[proc].Access(addr, 'r');
          count[9]++;
       }
@@ -303,7 +301,7 @@ void CacheController::report() {
 
    std::cout<< "Found = " << diff << " To Go: "<< 7580-diff << std::endl;
 
-   for(size_t i=0;i<12;++i){
+   for(size_t i=0;i<14;++i){
       std::cout << "Slot " << i<< " = " << count[i]<<std::endl;
 
    }
