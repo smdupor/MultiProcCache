@@ -174,7 +174,8 @@ void Cache::printStats()
    output += "07. number of cache-to-cache transfers:         ";
    cat_padded(&output, this->cc_transfers);
    output += "08. number of memory transactions:              ";
-   cat_padded(&output, this->memtraffic);
+   uint_fast32_t mem2 = read_misses + write_misses + (busrdx-write_misses) + write_backs;
+   cat_padded(&output, mem2);
    output += "09. number of interventions:                    ";
    cat_padded(&output, this->interventions);
    output += "10. number of invalidations:                    ";
