@@ -4,6 +4,9 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <sstream>
+#include <iomanip>
+
 #include "cache.h"
 using namespace std;
 
@@ -165,7 +168,7 @@ void Cache::printStats()
    output += "04. number of write misses:                    ";
    cat_padded(&output, this->write_misses);
    output += "05. total miss rate:                           ";
-   cat_padded(&output, (double)std::round(10000*((double)(this->read_misses+this->write_misses))/((double)(this->reads+this->writes)))/10000); // TODO l1+vc miss rate
+   cat_padded(&output, (double)std::round(10000*((double)(this->read_misses+this->write_misses))/((double)(this->reads+this->writes)))/100);
    output += "06. number of writebacks:                       ";
    cat_padded(&output, this->write_backs);
    output += "07. number of cache-to-cache transfers:         ";
@@ -190,6 +193,19 @@ void Cache::cat_padded(std::string *str, uint_fast32_t n) {
    while (value.length() < 12)
       value = " " + value;
    value += "\n";
+   *str += value;
+}
+
+// Attach a numeric value to the end of a string with space padding
+void Cache::cat_padded(std::string *str, double n) {
+   std::stringstream stream;
+   stream << std::fixed << std::setprecision(2) << n;
+   std::string r = stream.str();
+
+   std::string value = r;
+   while (value.length() < 12)
+      value = " " + value;
+   value += "%\n";
    *str += value;
 }
 

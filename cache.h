@@ -65,6 +65,7 @@ protected:
    ulong calcAddr4Tag(ulong tag)   { return (tag << (log2Blk));}
 
    void cat_padded(std::string *str, uint_fast32_t n);
+   void cat_padded(std::string *str, double n);
 public:
     ulong currentCycle;  
      
