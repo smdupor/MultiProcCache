@@ -220,4 +220,6 @@ void Cache::invalidate(uint_fast32_t addr) {
 
 void Cache::intervention() {
    ++this->interventions;
+   ++this->memtraffic;
+   ++this->write_backs;
 }

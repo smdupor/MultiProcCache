@@ -127,7 +127,9 @@ void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool wri
          // Case rd and (other) proc is in M
       else {
          //caches[Mloc->get_proc()].writeBack(addr);
-         caches[Mloc->get_proc()].invalidate(addr);
+         //caches[Mloc->get_proc()].invalidate(addr);
+         Mloc->set_state(S);
+         Mloc->setFlags(VALID);
          caches[Mloc->get_proc()].intervention();
          caches[Mloc->get_proc()].flush();
 //         Mloc->invalidate();
