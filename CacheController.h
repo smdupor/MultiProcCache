@@ -11,7 +11,7 @@
 
 #include "cache.h"
 
-enum coherence_types {MSI=0, MESI=1, DRAGON=2};
+
 
 class CacheController {
 private:

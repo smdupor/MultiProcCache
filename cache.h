@@ -12,8 +12,7 @@ typedef unsigned long ulong;
 typedef unsigned char uchar;
 typedef unsigned int uint;
 
-/****add new states, based on the protocol****/
-enum{
+enum states{
 	INVALID = 0,
 	VALID,
 	DIRTY,
@@ -22,6 +21,8 @@ enum{
    E=2,
    S=3
 };
+
+enum coherence_types {MSI=0, MESI=1, DRAGON=2};
 
 class cacheLine 
 {
@@ -55,7 +56,7 @@ protected:
    ulong size, lineSize, assoc, sets, log2Sets, log2Blk, tagMask, numLines;
    ulong reads,read_misses,writes,write_misses,write_backs;
 
-   uint_fast8_t proc;
+   uint_fast8_t proc, type;
 
    uint_fast32_t invalidations, interventions, cc_transfers, flushes, busrdx, memtraffic;
 
@@ -69,7 +70,7 @@ protected:
 public:
     ulong currentCycle;  
      
-    Cache(uint_fast32_t cache_size, uint_fast32_t cache_assoc, uint_fast32_t blocksize, uint_fast8_t proc );
+    Cache(uint_fast32_t cache_size, uint_fast32_t cache_assoc, uint_fast32_t blocksize, uint_fast8_t proc, uint_fast8_t coh_type );
    ~Cache() {}
    
    cacheLine *findLineToReplace(ulong addr);
@@ -85,12 +86,14 @@ public:
    void Access(ulong,uchar);
    void invalidate(uint_fast32_t addr);
    void intervention();
+   void intervention_mesi();
 
    void printStats();
    void updateLRU(cacheLine *);
 
    void flush() {++flushes;}
    void bus_rdx() {++busrdx;}
+   void transfer() {++cc_transfers;}
 
 };
 

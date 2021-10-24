@@ -8,7 +8,7 @@ CacheController::CacheController(uint_fast32_t size, uint_fast32_t assoc, uint_f
                                  uint_fast8_t num_caches, uint_fast8_t coherence_type) {
 type = coherence_type;
 for(size_t i=0;i<num_caches;++i) {
-   caches.emplace_back(Cache(size, assoc, blocksize, i));
+   caches.emplace_back(Cache(size, assoc, blocksize, i, coherence_type));
 }
 
    // DO MSI
@@ -146,7 +146,132 @@ void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool wri
 }
 
 void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local) {
+   bool has_S=false, has_M=false, has_E=false;
+   uint_fast8_t num_s=0;
+   cacheLine *Mloc, *Eloc;
 
+   for(cacheLine *l : local) {
+      if (l && l->get_state() == S) {
+         has_S = true;
+         ++num_s;
+      }
+      else if (l && l->get_state() == M) {
+         has_M = true;
+         Mloc=l;
+      }
+      else if(l && l->get_state() == E) {
+         has_E = true;
+         Eloc=l;
+      }
+   }
+
+   if(write && has_M) {
+      // Case Write and (this) proc is in M
+      if (local[proc] && local[proc]->get_state() == M) {
+         caches[proc].Access(addr, 'w');
+
+      }
+
+         // Case Write and (other) proc is in M
+      else {
+         //caches[Mloc->get_proc()].writeBack(addr);
+         caches[Mloc->get_proc()].invalidate(addr);
+         Mloc->invalidate();
+         caches[Mloc->get_proc()].flush();
+         local[proc]=caches[proc].findLineToReplace(addr);
+         local[proc]->set_state(M);
+         caches[proc].transfer();
+         caches[proc].intervention_mesi();
+         caches[proc].Access(addr, 'w');
+
+      }
+   }
+   else if(write && (has_S || has_E)) {
+      // Case write and This proc is the ONLY E
+      if (local[proc] && has_E) {
+         caches[proc].Access(addr, 'w');
+         local[proc]->set_state(M);    //BusUpgr ... intervention?
+         caches[proc].intervention_mesi();
+      }
+         // Case Write and multiple procs in S inclusive of this proc
+      else if(local[proc]) {
+
+         for(cacheLine *l : local){
+            if(l && l->get_proc() != proc) {
+               caches[l->get_proc()].invalidate(addr);
+               l->invalidate();
+            }
+         }
+         local[proc]->set_state(M);
+         caches[proc].intervention_mesi(); // has 18
+
+         caches[proc].Access(addr, 'w');
+      }
+         // Case write, other procs in S or E, this proc invalid
+      else{
+         for(cacheLine *l : local){
+            if(l && l->get_proc() != proc) {
+               caches[l->get_proc()].invalidate(addr);
+               l->invalidate();
+            }
+         }
+         local[proc]=caches[proc].findLineToReplace(addr);
+         local[proc]->set_state(M);
+         caches[proc].transfer();
+         caches[proc].intervention();
+         caches[proc].Access(addr, 'w');
+      }
+   }
+   else if (write && !has_M && !has_S && !has_E){ // case write, all invalid
+      local[proc]=caches[proc].findLineToReplace(addr);
+      local[proc]->set_state(M);
+      caches[proc].bus_rdx();
+      caches[proc].intervention_mesi(); // has 3
+      caches[proc].Access(addr, 'w');
+   }
+   else if(!write && (has_S || has_E)){
+      if(local[proc]) { // case read and this proc in S or E
+         caches[proc].Access(addr, 'r');
+      }
+      else{ // case read and other procs in S or e, this proc invalid
+         local[proc]=caches[proc].findLineToReplace(addr);
+         local[proc]->set_state(S);
+         if(Eloc)
+            Eloc->set_state(S);
+         // has 18-192
+         //caches[proc].intervention_mesi();
+         caches[proc].transfer();
+         caches[proc].Access(addr, 'r');
+      }
+   }
+   else if (!write && has_M) {
+      // Case rd and (this) proc is in M
+      if (local[proc] && local[proc]->get_state() == M) {
+         caches[proc].Access(addr, 'r');
+         // has250+
+      }
+         // Case rd and (other) proc is in M
+      else {
+         //caches[Mloc->get_proc()].writeBack(addr);
+         //caches[Mloc->get_proc()].invalidate(addr);
+         Mloc->set_state(S);
+         Mloc->setFlags(VALID);
+         caches[Mloc->get_proc()].intervention();
+         caches[Mloc->get_proc()].flush();
+//         Mloc->invalidate();
+         local[proc]=caches[proc].findLineToReplace(addr);
+         local[proc]->set_state(S);
+         caches[proc].transfer();
+// not reach
+         caches[proc].Access(addr, 'r');
+      }
+   }
+   else{ // case rd and all invalid
+      local[proc]=caches[proc].findLineToReplace(addr);
+      local[proc]->set_state(E);
+      caches[proc].Access(addr, 'r');
+      // hasa 100
+   }
 }
 
 void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local) {

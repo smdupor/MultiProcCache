@@ -10,9 +10,10 @@
 #include "cache.h"
 using namespace std;
 
-Cache::Cache(uint_fast32_t cache_size, uint_fast32_t cache_assoc, uint_fast32_t blocksize, uint_fast8_t proc )
+Cache::Cache(uint_fast32_t cache_size, uint_fast32_t cache_assoc, uint_fast32_t blocksize, uint_fast8_t proc, uint_fast8_t coh_type )
 {
    this->proc = proc;
+   this->type = coh_type;
    ulong i, j;
    reads = read_misses = writes = invalidations = interventions = flushes= busrdx= memtraffic=cc_transfers= 0;
    write_misses = write_backs = currentCycle = 0;
@@ -174,7 +175,10 @@ void Cache::printStats()
    output += "07. number of cache-to-cache transfers:         ";
    cat_padded(&output, this->cc_transfers);
    output += "08. number of memory transactions:              ";
-   uint_fast32_t mem2 = read_misses + write_misses + (busrdx-write_misses) + write_backs;
+   uint_fast32_t mem2;
+   if(this->type == MSI){     mem2= read_misses + write_misses + (busrdx-write_misses) + write_backs;}
+   else if(this->type == MESI){mem2= read_misses + write_misses + (busrdx-write_misses) + write_backs - cc_transfers;}
+   else                       {mem2= read_misses + write_misses + (busrdx-write_misses) + write_backs;}
    cat_padded(&output, mem2);
    output += "09. number of interventions:                    ";
    cat_padded(&output, this->interventions);
@@ -223,4 +227,9 @@ void Cache::intervention() {
    ++this->interventions;
    ++this->memtraffic;
    ++this->write_backs;
+}
+
+void Cache::intervention_mesi() {
+   ++this->interventions;
+
 }
