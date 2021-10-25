@@ -187,7 +187,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
          local[proc]->set_state(M);
          caches[proc].transfer();
          caches[proc].bus_rdx();
-         caches[proc].intervention_mesi();
+         //caches[proc].intervention_mesi();
          caches[proc].Access(addr, 'w');
          count[1]++;
       }
@@ -211,7 +211,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
             }
          }
          local[proc]->set_state(M);
-        caches[proc].intervention_mesi();
+        //caches[proc].intervention_mesi();
 
          caches[proc].Access(addr, 'w');
          count[3]++;
@@ -228,7 +228,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(M);
          caches[proc].transfer();
-         caches[proc].intervention_mesi();
+         //caches[proc].intervention_mesi();
          caches[proc].bus_rdx();
          caches[proc].Access(addr, 'w');
          count[4]++;
@@ -252,6 +252,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
          local[proc]->set_state(S);
          if(Eloc) {
             Eloc->set_state(S);
+            caches[Eloc->get_proc()].intervention_mesi();
             count[13]++;
          }
          //caches[proc].intervention_mesi();
@@ -270,7 +271,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       else {
          Mloc->set_state(S);
          Mloc->setFlags(VALID);
-         //caches[proc].intervention_mesi();
+         caches[Mloc->get_proc()].intervention_mesi();
          caches[Mloc->get_proc()].flush_mesi();
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(S);
@@ -299,12 +300,12 @@ void CacheController::report() {
       diff += c.getFU();
    }
 
-   std::cout<< "Found = " << diff << " To Go: "<< 7580-diff << std::endl;
+  /* std::cout<< "Found = " << diff << " To Go: "<< 7580-diff << std::endl;
 
    for(size_t i=0;i<14;++i){
       std::cout << "Slot " << i<< " = " << count[i]<<std::endl;
 
-   }
+   }*/
 }
 
 CacheController *
