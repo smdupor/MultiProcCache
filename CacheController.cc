@@ -149,8 +149,6 @@ void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool wri
 }
 
 void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local) {
-
-
    bool has_S=false, has_M=false, has_E=false;
    uint_fast8_t num_s=0;
    cacheLine *Mloc, *Eloc;
@@ -174,12 +172,10 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       // Case Write and (this) proc is in M
       if (local[proc] && local[proc]->get_state() == M) {
          caches[proc].Access(addr, 'w');
-         count[0]++;
       }
 
          // Case Write and (other) proc is in M
       else {
-         //caches[Mloc->get_proc()].writeBack(addr);
          caches[Mloc->get_proc()].invalidate(addr);
          Mloc->invalidate();
          caches[Mloc->get_proc()].flush();
@@ -187,9 +183,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
          local[proc]->set_state(M);
          caches[proc].transfer();
          caches[proc].bus_rdx();
-         //caches[proc].intervention_mesi();
          caches[proc].Access(addr, 'w');
-         count[1]++;
       }
    }
    else if(write && (has_S || has_E)) {
@@ -197,22 +191,16 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       if (local[proc] && has_E) {
          caches[proc].Access(addr, 'w');
          local[proc]->set_state(M);
-         //caches[proc].intervention_mesi();
-         count[2]++;
       }
          // Case Write and multiple procs in S including this
       else if(local[proc]) {
-
          for(cacheLine *l : local){
             if(l && l->get_proc() != proc) {
                caches[l->get_proc()].invalidate(addr);
-               count[11]++;
                l->invalidate();
             }
          }
          local[proc]->set_state(M);
-        //caches[proc].intervention_mesi();
-
          caches[proc].Access(addr, 'w');
          count[3]++;
       }
@@ -222,30 +210,24 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
             if(l && l->get_proc() != proc) {
                caches[l->get_proc()].invalidate(addr);
                l->invalidate();
-               count[12]++;
             }
          }
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(M);
          caches[proc].transfer();
-         //caches[proc].intervention_mesi();
          caches[proc].bus_rdx();
          caches[proc].Access(addr, 'w');
-         count[4]++;
       }
    }
    else if (write && !has_M && !has_S && !has_E){ // case write, all invalid
       local[proc]=caches[proc].findLineToReplace(addr);
       local[proc]->set_state(M);
       caches[proc].bus_rdx();
-      //caches[proc].intervention_mesi(); // has 3
       caches[proc].Access(addr, 'w');
-      count[5]++;
    }
    else if(!write && (has_S || has_E)){
       if(local[proc]) { // case read and this proc in S or E
          caches[proc].Access(addr, 'r');
-         count[6]++;
       }
       else{ // case read and other procs in S or e, this proc invalid
          local[proc]=caches[proc].findLineToReplace(addr);
@@ -253,19 +235,15 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
          if(Eloc) {
             Eloc->set_state(S);
             caches[Eloc->get_proc()].intervention_mesi();
-            count[13]++;
          }
-         //caches[proc].intervention_mesi();
          caches[proc].transfer();
          caches[proc].Access(addr, 'r');
-         count[7]++;
       }
    }
    else if (!write && has_M) {
       // Case rd and (this) proc is in M
       if (local[proc] && local[proc]->get_state() == M) {
          caches[proc].Access(addr, 'r');
-         count[8]++;
       }
          // Case rd and (other) proc is in M
       else {
@@ -277,14 +255,12 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
          local[proc]->set_state(S);
          caches[proc].transfer();
          caches[proc].Access(addr, 'r');
-         count[9]++;
       }
    }
    else{ // case rd and all invalid
       local[proc]=caches[proc].findLineToReplace(addr);
       local[proc]->set_state(E);
       caches[proc].Access(addr, 'r');
-      count[10]++;
    }
 }
 
