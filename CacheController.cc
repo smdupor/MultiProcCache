@@ -265,8 +265,117 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
 }
 
 void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local) {
+   bool has_SM=false, has_SC=false, has_M=false, has_E=false;
+   cacheLine *Mloc, *Eloc, *SMloc;
+
+   for(cacheLine *l : local) {
+      if (l && l->get_state() == SM) {
+         has_SM = true;
+         SMloc = l;
+      }
+      else if (l && l->get_state() == M) {
+         has_M = true;
+         Mloc=l;
+      }
+      else if(l && l->get_state() == E) {
+         has_E = true;
+         Eloc=l;
+      }
+      else if(l && l->get_state() == SC) {
+         has_SC = true;
+      }
+   }
 
 
+   if(write) { //ALL WRITES
+      // Case write and (this) proc is in E or M or Sm
+      if ((has_E && Eloc->get_proc() == proc) || (has_M && Mloc->get_proc() == proc) ||
+          (has_SM && SMloc->get_proc() == proc)) {
+         if(has_E) local[proc]->set_state(M);
+      }
+      // Case write and Other proc in E
+      else if(has_E && Eloc->get_proc() != proc) {
+         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         local[Eloc->get_proc()]->set_state(SC);
+         //caches[Eloc->get_proc()].intervention_mesi();
+         local[proc]->set_state(SM);
+         count[0]++;
+      }
+      // Case write and Other proc in M
+      else if(has_M && Mloc->get_proc() != proc) {
+         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         local[Mloc->get_proc()]->set_state(SC);
+         caches[Mloc->get_proc()].intervention_mesi();
+         caches[Mloc->get_proc()].flush();
+         local[proc]->set_state(SM);
+         count[1]++;
+      }
+      // Case write and Other proc in SM
+      else if(has_SM && SMloc->get_proc() != proc) {
+         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         local[SMloc->get_proc()]->set_state(SC);
+         caches[SMloc->get_proc()].intervention_mesi();
+         local[proc]->set_state(SM);
+         count[2]++;
+      }
+      // Case write and no caches hold valid line
+      else {
+
+         local[proc]=caches[proc].findLineToReplace(addr);
+         local[proc]->set_state(M);
+
+      }
+      caches[proc].Access(addr, 'w');
+   }
+   else { // ALL READS
+      // Case read and (this) proc is in E or M or Sm
+      if ((has_E && Eloc->get_proc() == proc) || (has_M && Mloc->get_proc() == proc) ||
+          (has_SM && SMloc->get_proc() == proc)) {
+            // do read no-op
+      }
+         // Case read and Other proc in E
+      else if(has_E && Eloc->get_proc() != proc) {
+         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         local[Eloc->get_proc()]->set_state(SC);
+         caches[Eloc->get_proc()].intervention_mesi();
+         local[proc]->set_state(SC);
+         count[3]++;
+
+      }
+         // Case read and Other proc in M
+      else if(has_M && Mloc->get_proc() != proc) {
+         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         local[Mloc->get_proc()]->set_state(SM);
+         //caches[Mloc->get_proc()].intervention_mesi();
+         caches[SMloc->get_proc()].flush();
+         local[proc]->set_state(SC);
+         count[4]++;
+      }
+         // Case read and Other proc in SM and this proc invalid
+      else if(has_SM && SMloc->get_proc() != proc && !local[proc]) {
+         local[proc]=caches[proc].findLineToReplace(addr);
+        // caches[SMloc->get_proc()].intervention_mesi();          /////////// Maybe
+         caches[SMloc->get_proc()].flush();
+         local[proc]->set_state(SC);
+         count[5]++;
+      }
+         // Case read and Other proc in SM
+      else if(has_SC ) {
+         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         //caches[SMloc->get_proc()].intervention();          /////////// Maybe
+         //caches[SMloc->get_proc()].flush();
+         local[proc]->set_state(SC);
+         count[6]++;
+      }
+
+         // Case read and no caches hold valid line
+      else {
+         local[proc]=caches[proc].findLineToReplace(addr);
+         local[proc]->set_state(E);
+
+      }
+      caches[proc].Access(addr, 'r');
+   }
 }
 
 void CacheController::report() {
@@ -276,12 +385,12 @@ void CacheController::report() {
       diff += c.getFU();
    }
 
-  /* std::cout<< "Found = " << diff << " To Go: "<< 7580-diff << std::endl;
+   //std::cout<< "Found = " << diff << " To Go: "<< 7580-diff << std::endl;
 
    for(size_t i=0;i<14;++i){
       std::cout << "Slot " << i<< " = " << count[i]<<std::endl;
 
-   }*/
+   }
 }
 
 CacheController *

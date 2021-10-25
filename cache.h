@@ -19,7 +19,9 @@ enum states{
    I=0,
    M=1,
    E=2,
-   S=3
+   S=3,
+   SC=4,
+   SM=5
 };
 
 enum coherence_types {MSI=0, MESI=1, DRAGON=2};

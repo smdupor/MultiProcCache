@@ -178,7 +178,7 @@ void Cache::printStats()
    uint_fast32_t mem2;
    if(this->type == MSI){     mem2= read_misses + write_misses + (busrdx-write_misses) + write_backs;}
    else if(this->type == MESI){mem2= read_misses + write_misses + (busrdx-write_misses) + write_backs - cc_transfers;}
-   else                       {mem2= read_misses + write_misses + (busrdx-write_misses) + write_backs;}
+   else                       {mem2= read_misses + write_misses + busrdx + write_backs;}
    cat_padded(&output, mem2);
    output += "09. number of interventions:                    ";
    cat_padded(&output, this->interventions);
