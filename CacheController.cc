@@ -7,8 +7,11 @@
 CacheController::CacheController(uint_fast32_t size, uint_fast32_t assoc, uint_fast32_t blocksize,
                                  uint_fast8_t num_caches, uint_fast8_t coherence_type) {
 type = coherence_type;
+caches = (Cache *) malloc(num_caches*sizeof(Cache));
+qty = num_caches;
+
 for(size_t i=0;i<num_caches;++i) {
-   caches.emplace_back(Cache(size, assoc, blocksize, i, coherence_type));
+   caches[i] = *new Cache(size, assoc, blocksize, i, coherence_type);
 }
 
 for (size_t i=0;i<30;++i)
@@ -24,8 +27,8 @@ for (size_t i=0;i<30;++i)
 
 void CacheController::access(uint_fast32_t addr, uint_fast8_t proc, bool write) {
    std::vector<cacheLine *> local;
-   for(Cache &c : caches)
-      local.emplace_back(c.findLine(addr));
+   for(int i =0; i<qty;++i)
+      local.emplace_back(caches[i].findLine(addr)); ////////////////////// SWAPPPED from for Cache in caches
    switch (type) {
      case MSI:
          msi_access(addr, proc, write, local);
@@ -380,9 +383,10 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
 
 void CacheController::report() {
    uint_fast32_t diff = 0;
-   for(Cache &c:caches) {
-      c.printStats();
-      diff += c.getFU();
+   for(int i =0; i<qty;++i) {
+                                     ////////////////////// SWAPPPED from for Cache in caches
+      caches[i].printStats();
+      diff += caches[i].getFU();
    }
 
    //std::cout<< "Found = " << diff << " To Go: "<< 7580-diff << std::endl;
@@ -398,4 +402,9 @@ CacheController::instance(uint_fast32_t size, uint_fast32_t assoc, uint_fast32_t
                           uint_fast8_t coherence_type) {
    static CacheController instance(size, assoc, blocksize, num_caches, coherence_type);
    return &instance;
+}
+
+CacheController::~CacheController() {
+   free(caches);
+
 }
