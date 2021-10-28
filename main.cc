@@ -286,8 +286,8 @@ int main(int argc, char *argv[])
 
 
       if(pr2 >= 0 && pr2 < num_processors && (rw == 'r'||rw == 'w')) {
-         pr = (uint_fast8_t) pr2;
-         addr = address;
+         pr = (const uint_fast8_t) pr2;
+         addr = (const unsigned long) address;
          if (rw == 'r')
             c->access(addr, pr, false);
          else if (rw == 'w')
