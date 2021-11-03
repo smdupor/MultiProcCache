@@ -270,7 +270,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
 void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local) {
    bool has_SM=false, has_SC=false, has_M=false, has_E=false;
    cacheLine *Mloc, *Eloc, *SMloc;
-
+   count[7]++;
    for(cacheLine *l : local) {
       if (l && l->get_state() == SM) {
          has_SM = true;
@@ -290,8 +290,21 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
    }
 
    if(has_M && has_SM) {
-      std::cout<< "M and SM Collision on " << addr << "where count 6 is"<< count[6] << std::endl;
+      std::cout<< "M and SM Collision on " << addr << "where count 6 is"<< count[7] << std::endl;
    }
+   if(has_E && has_M) {
+      std::cout<< "E and M Collision on " << addr << "where count 6 is"<< count[7] << std::endl;
+   }
+   if(has_E && has_SM) {
+      std::cout<< "E and SM Collision on " << addr << "where count 6 is"<< count[7] << std::endl;
+   }
+   if(has_E && has_SC) {
+      std::cout<< "E and SC Collision on " << addr << "where count 6 is"<< count[7] << std::endl;
+   }
+   if(has_M && has_SC) {
+      std::cout<< "E and SC Collision on " << addr << "where count 6 is"<< count[7] << std::endl;
+   }
+
 
 
    if(write) { //ALL WRITES
@@ -329,6 +342,7 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
          if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
          local[Mloc->get_proc()]->set_state(SC);
          caches[Mloc->get_proc()].intervention_mesi();
+         caches[Mloc->get_proc()].flush();
          caches[proc].Access(addr, 'w');
          local[proc]->set_state(SM);
 
@@ -338,6 +352,7 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
       else if(has_SM && SMloc->get_proc() != proc) {
          if(!local[proc]) {
             local[proc]=caches[proc].findLineToReplace(addr);
+            caches[SMloc->get_proc()].flush();
          }
 
          local[SMloc->get_proc()]->set_state(SC);
