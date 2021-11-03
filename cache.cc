@@ -146,7 +146,13 @@ cacheLine *Cache::fillLine(ulong addr)
    cacheLine *victim = findLineToReplace(addr);
    updateLRU(victim);
    assert(victim != 0);
-   if(victim->getFlags() == DIRTY) writeBack(addr);
+
+   if( type!= DRAGON && victim->getFlags() == DIRTY) {
+      writeBack(addr);}
+   else if( type==DRAGON && victim->getFlags() == DIRTY ){// && (victim->get_state() == SM || victim->get_state() == M)) {
+      writeBack(addr);
+
+   }
     	
    tag = calcTag(addr);   
    victim->setTag(tag);

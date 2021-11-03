@@ -289,18 +289,38 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
       }
    }
 
+   if(has_M && has_SM) {
+      std::cout<< "M and SM Collision on " << addr << "where count 6 is"<< count[6] << std::endl;
+   }
+
 
    if(write) { //ALL WRITES
       // Case write and (this) proc is in E or M or Sm
       if ((has_E && Eloc->get_proc() == proc) || (has_M && Mloc->get_proc() == proc) ||
           (has_SM && SMloc->get_proc() == proc)) {
-         if(has_E) local[proc]->set_state(M);
+         caches[proc].Access(addr, 'w');
+         if(has_E) {
+            local[proc]->set_state(M);
+
+         }
+         /*if(has_SM && !has_SC) {
+            local[proc]->set_state(M);
+         }*/
       }
+      else if (has_SC && !has_SM){
+         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+
+         local[proc]->set_state(SM);
+         caches[proc].Access(addr, 'w');
+
+      }
+
       // Case write and Other proc in E
       else if(has_E && Eloc->get_proc() != proc) {
          if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
          local[Eloc->get_proc()]->set_state(SC);
-         //caches[Eloc->get_proc()].intervention_mesi();
+         caches[Eloc->get_proc()].intervention_mesi();
+         caches[proc].Access(addr, 'w');
          local[proc]->set_state(SM);
          count[0]++;
       }
@@ -309,15 +329,20 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
          if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
          local[Mloc->get_proc()]->set_state(SC);
          caches[Mloc->get_proc()].intervention_mesi();
-         caches[Mloc->get_proc()].flush();
+         caches[proc].Access(addr, 'w');
          local[proc]->set_state(SM);
+
          count[1]++;
       }
       // Case write and Other proc in SM
       else if(has_SM && SMloc->get_proc() != proc) {
-         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         if(!local[proc]) {
+            local[proc]=caches[proc].findLineToReplace(addr);
+         }
+
          local[SMloc->get_proc()]->set_state(SC);
-         caches[SMloc->get_proc()].intervention_mesi();
+
+         caches[proc].Access(addr, 'w');
          local[proc]->set_state(SM);
          count[2]++;
       }
@@ -325,20 +350,22 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
       else {
 
          local[proc]=caches[proc].findLineToReplace(addr);
+         caches[proc].Access(addr, 'w');
          local[proc]->set_state(M);
 
       }
-      caches[proc].Access(addr, 'w');
+
    }
    else { // ALL READS
       // Case read and (this) proc is in E or M or Sm
       if ((has_E && Eloc->get_proc() == proc) || (has_M && Mloc->get_proc() == proc) ||
-          (has_SM && SMloc->get_proc() == proc)) {
-            // do read no-op
+          (has_SM && SMloc->get_proc() == proc)||(has_SC && local[proc])) {
+         caches[proc].Access(addr, 'r');
       }
          // Case read and Other proc in E
       else if(has_E && Eloc->get_proc() != proc) {
          if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         caches[proc].Access(addr, 'r');
          local[Eloc->get_proc()]->set_state(SC);
          caches[Eloc->get_proc()].intervention_mesi();
          local[proc]->set_state(SC);
@@ -348,25 +375,28 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
          // Case read and Other proc in M
       else if(has_M && Mloc->get_proc() != proc) {
          if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
+         caches[proc].Access(addr, 'r');
          local[Mloc->get_proc()]->set_state(SM);
-         //caches[Mloc->get_proc()].intervention_mesi();
-         caches[SMloc->get_proc()].flush();
+         caches[Mloc->get_proc()].intervention_mesi();
+         caches[Mloc->get_proc()].flush();
          local[proc]->set_state(SC);
          count[4]++;
       }
          // Case read and Other proc in SM and this proc invalid
       else if(has_SM && SMloc->get_proc() != proc && !local[proc]) {
          local[proc]=caches[proc].findLineToReplace(addr);
-        // caches[SMloc->get_proc()].intervention_mesi();          /////////// Maybe
+
          caches[SMloc->get_proc()].flush();
+         caches[proc].Access(addr, 'r');
          local[proc]->set_state(SC);
          count[5]++;
       }
-         // Case read and Other proc in SM
+         // Case read and Other proc in SC
       else if(has_SC ) {
-         if(!local[proc]) local[proc]=caches[proc].findLineToReplace(addr);
-         //caches[SMloc->get_proc()].intervention();          /////////// Maybe
-         //caches[SMloc->get_proc()].flush();
+         if(!local[proc]) {
+            local[proc] = caches[proc].findLineToReplace(addr);
+         }
+         caches[proc].Access(addr, 'r');
          local[proc]->set_state(SC);
          count[6]++;
       }
@@ -374,10 +404,11 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
          // Case read and no caches hold valid line
       else {
          local[proc]=caches[proc].findLineToReplace(addr);
+         caches[proc].Access(addr, 'r');
          local[proc]->set_state(E);
 
       }
-      caches[proc].Access(addr, 'r');
+
    }
 }
 

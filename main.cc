@@ -307,8 +307,8 @@ int main(int argc, char *argv[])
 	fclose(FP);
 
 	c->report();
-   std::cout << count<<std::endl;
-   std::cout << count<<std::endl;
+  // std::cout << count<<std::endl;
+   //std::cout << count<<std::endl;
    if(count>500001)
       std::cerr<< "ERROR OVERLENGTH";
    return EXIT_SUCCESS;

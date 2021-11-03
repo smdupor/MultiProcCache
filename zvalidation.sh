@@ -27,7 +27,7 @@
 
 ./smp_cache 8192 8 64 4 2 trace/canneal.04t.longTrace > output
 diff -iw output val.v2/Dragon_long.val
-rm output
+#rm output
 echo "DRAGON Long trace"
 
 #for i in 1 2 3 4 5 6 7
