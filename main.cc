@@ -306,16 +306,16 @@ int main(int argc, char *argv[])
                                                                      && strcmp((const char *) buf1, (const char *) buf5) == 0) {
          sscanf((const char *) buf1, "%u %c %lx", &pr2, &rw, &address);
       } else if (strcmp((const char *) buf2, (const char *) buf3) == 0 && strcmp((const char *) buf3, (const char *) buf4) == 0){
-         std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
+         //std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
          sscanf((const char *) buf2, "%u %c %lx", &pr2, &rw, &address);
       } else if (strcmp((const char *) buf1, (const char *) buf3) == 0&& strcmp((const char *) buf1, (const char *) buf5) == 0){
-         std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
+         //std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
          sscanf((const char *) buf3, "%u %c %lx", &pr2, &rw, &address);
       } else if (strcmp((const char *) buf1, (const char *) buf2) == 0&& strcmp((const char *) buf1, (const char *) buf5) == 0){
-         std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
+         //std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
          sscanf((const char *) buf5, "%u %c %lx", &pr2, &rw, &address);
       } else if (strcmp((const char *) buf3, (const char *) buf4) == 0&& strcmp((const char *) buf4, (const char *) buf5) == 0){
-         std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
+         //std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
          sscanf((const char *) buf5, "%u %c %lx", &pr2, &rw, &address);
       } else {
          std::cerr << "File CONSENSUS READ FAILURE. ABORT.\n";
@@ -347,7 +347,6 @@ int main(int argc, char *argv[])
          if(count>500010)
             exit(EXIT_FAILURE);
       }
-      //std::this_thread::sleep_for(std::chrono::nanoseconds (1));
       bzero(buf1, 30);
       bzero(buf2, 30);
       bzero(buf3, 30);
