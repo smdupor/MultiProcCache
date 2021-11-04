@@ -184,12 +184,12 @@ std::string line;
    }
 
 
-
+/*
 	fclose(FP1);
    fclose(FP2);
    fclose(FP3);
    fclose(FP4);
-   fclose(FP5);
+   fclose(FP5);*/
 
   // fp.close();
 	c->report();
