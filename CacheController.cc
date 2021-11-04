@@ -476,11 +476,11 @@ void CacheController::report() {
    }
 
    //std::cout<< "Found = " << diff << " To Go: "<< 7580-diff << std::endl;
-
+/*
    for(size_t i=0;i<18;++i){
       std::cout << "Slot " << i<< " = " << count[i]<<std::endl;
 
-   }
+   }*/
 }
 
 CacheController *
@@ -491,6 +491,7 @@ CacheController::instance(uint_fast32_t size, uint_fast32_t assoc, uint_fast32_t
 }
 
 CacheController::~CacheController() {
+
    free(caches);
 
 }

@@ -9,6 +9,8 @@
 #include <fstream>
 #include <execinfo.h>
 #include <signal.h>
+#include <sstream>
+#include <thread>
 #include <err.h>
 #include <cstring>
 
@@ -194,8 +196,12 @@ int main(int argc, char *argv[])
 {
 	//set_signal_handler();
 
-	ifstream fin;
-	FILE * FP;
+
+	FILE *FP1;
+   FILE *FP2;
+   FILE *FP3;
+   FILE *FP4;
+   FILE *FP5;
 
 /*   int *i = 0;
    i = 0;
@@ -256,8 +262,12 @@ int main(int argc, char *argv[])
          break;
    }
 
-   FP = fopen (fname, "r");
-	if(FP == 0)
+   FP1 = fopen (fname, "r");
+   FP2 = fopen (fname, "r");
+   FP3 = fopen (fname, "r");
+   FP4 = fopen (fname, "r");
+   FP5 = fopen (fname, "r");
+	if(FP1 == 0 || FP2 == 0 || FP3 == 0|| FP4 == 0|| FP5 == 0)
 	{   
 		printf("Trace file problem\n");
 		exit(0);
@@ -269,23 +279,57 @@ int main(int argc, char *argv[])
    unsigned long address;
    uint_fast32_t addr;
    uint_fast8_t pr;
-   int pr2;
-   //unsigned long pr2;
+   unsigned int pr2;
 
-   char buffer[256];
+   char buf1[30];
+   char buf2[30];
+   char buf3[30];
+   char buf4[30];
+   char buf5[30];
+
+   bzero(buf1, 30);
+   bzero(buf2, 30);
+   bzero(buf3, 30);
+   bzero(buf4, 30);
+   bzero(buf5, 30);
 
    uint_fast32_t count = 0;
-   while (fgets(buffer, 256, FP)) {
-      sscanf((const char *) buffer, "%d %c %lx", &pr2, &rw, &address);
+   while (fgets(buf1, 29, FP1)) {
 
-      //rw = strb[0];
+      fgets(buf2, 29, FP2);
+      fgets(buf3, 29, FP3);
+      fgets(buf4, 29, FP4);
+      fgets(buf5, 29, FP5);
 
-     // *prc = stra[0];
-      //29 526 506
-     // pr = (uint_fast8_t ) strtoul((const char *) prc, NULL, 0);
+      if(strcmp((const char *) buf1, (const char *) buf2) == 0 && strcmp((const char *) buf1, (const char *) buf3) == 0
+                                                                  && strcmp((const char *) buf1, (const char *) buf4) == 0
+                                                                     && strcmp((const char *) buf1, (const char *) buf5) == 0) {
+         sscanf((const char *) buf1, "%u %c %lx", &pr2, &rw, &address);
+      } else if (strcmp((const char *) buf2, (const char *) buf3) == 0 && strcmp((const char *) buf3, (const char *) buf4) == 0){
+         std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
+         sscanf((const char *) buf2, "%u %c %lx", &pr2, &rw, &address);
+      } else if (strcmp((const char *) buf1, (const char *) buf3) == 0&& strcmp((const char *) buf1, (const char *) buf5) == 0){
+         std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
+         sscanf((const char *) buf3, "%u %c %lx", &pr2, &rw, &address);
+      } else if (strcmp((const char *) buf1, (const char *) buf2) == 0&& strcmp((const char *) buf1, (const char *) buf5) == 0){
+         std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
+         sscanf((const char *) buf5, "%u %c %lx", &pr2, &rw, &address);
+      } else if (strcmp((const char *) buf3, (const char *) buf4) == 0&& strcmp((const char *) buf4, (const char *) buf5) == 0){
+         std::cerr << "File CONSENSUS  FAILURE. Continuing.\n";
+         sscanf((const char *) buf5, "%u %c %lx", &pr2, &rw, &address);
+      } else {
+         std::cerr << "File CONSENSUS READ FAILURE. ABORT.\n";
+         std::cerr << "Received: " << std::string(buf1)<<std::endl;
+         std::cerr << "Received: " << std::string(buf2)<<std::endl;
+         std::cerr << "Received: " << std::string(buf3)<<std::endl;
 
+         fclose(FP1);
+         fclose(FP2);
+         fclose(FP3);
+         exit(EXIT_FAILURE);
+      }
 
-      if(pr2 >= 0 && pr2 < num_processors && (rw == 'r'||rw == 'w')) {
+      if(pr2 >= 0 && pr2 < (unsigned int) num_processors && (rw == 'r'||rw == 'w')) {
          pr = (const uint_fast8_t) pr2;
          addr = (const unsigned long) address;
          if (rw == 'r')
@@ -293,6 +337,9 @@ int main(int argc, char *argv[])
          else if (rw == 'w')
             c->access(addr, pr, true);
 
+      } else
+      {
+         std::cerr << "File VALUE READ FAILURE. ABORT.\n";
       }
       ++count;
       if(count>500001) {
@@ -300,11 +347,22 @@ int main(int argc, char *argv[])
          if(count>500010)
             exit(EXIT_FAILURE);
       }
-      bzero(buffer, 256);
+      //std::this_thread::sleep_for(std::chrono::nanoseconds (1));
+      bzero(buf1, 30);
+      bzero(buf2, 30);
+      bzero(buf3, 30);
+      bzero(buf4, 30);
+      bzero(buf5, 30);
+
    }
 
 
-	fclose(FP);
+
+	fclose(FP1);
+   fclose(FP2);
+   fclose(FP3);
+   fclose(FP4);
+   fclose(FP5);
 
 	c->report();
   // std::cout << count<<std::endl;
