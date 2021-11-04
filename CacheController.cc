@@ -28,7 +28,7 @@ for (size_t i=0;i<30;++i)
 void CacheController::access(uint_fast32_t addr, uint_fast8_t proc, bool write) {
    std::vector<cacheLine *> local;
    for(int i =0; i<qty;++i)
-      local.emplace_back(caches[i].findLine(addr)); ////////////////////// SWAPPPED from for Cache in caches
+      local.emplace_back(caches[i].findLine(addr));
    switch (type) {
      case MSI:
          msi_access(addr, proc, write, local);
@@ -492,6 +492,6 @@ CacheController::instance(uint_fast32_t size, uint_fast32_t assoc, uint_fast32_t
 
 CacheController::~CacheController() {
 
-   free(caches);
+  // free(caches);
 
 }
