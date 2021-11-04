@@ -149,7 +149,7 @@ cacheLine *Cache::fillLine(ulong addr)
 
    if( type!= DRAGON && victim->getFlags() == DIRTY) {
       writeBack(addr);}
-   else if( type==DRAGON && victim->getFlags() == DIRTY ){// && (victim->get_state() == SM || victim->get_state() == M)) {
+   else if( type==DRAGON && victim->getFlags() == DIRTY  && victim->get_state() != SC) {
       writeBack(addr);
 
    }
@@ -162,7 +162,8 @@ cacheLine *Cache::fillLine(ulong addr)
 }
 
 void Cache::printStats()
-{ 
+{
+
    std::string output = "============ Simulation results (Cache ";
    output += std::to_string(this->proc);
    output += ") ============\n";
