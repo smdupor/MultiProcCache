@@ -19,6 +19,8 @@ using namespace std;
 #include "cache.h"
 #include "CacheController.h"
 
+void header_report(int cache_size, int cache_assoc, int blk_size, int num_processors, int protocol, const char *fname);
+
 int main(int argc, char *argv[])
 {
 
@@ -44,28 +46,7 @@ int main(int argc, char *argv[])
 	char *fname =  (char *)malloc(60);
  	fname = argv[6];
 
-	std::string info = "===== 506 Personal information =====\n"
-                      "FirstName (MiddleNames) LastName (Change it to your own name)\n"
-                      "UnityID (Change it to your own UID)\n"
-                      "ECE492 Students? YES/NO (Change it according to your own section)\n"
-                      "===== 506 SMP Simulator configuration =====\n";
-   info += "L1_SIZE: " + std::to_string(cache_size) + "\n";
-   info += "L1_ASSOC: " + std::to_string(cache_assoc) + "\n";
-   info += "L1_BLOCKSIZE: " + std::to_string(blk_size) + "\n";
-   info += "NUMBER OF PROCESSORS: " + std::to_string(num_processors) + "\n";
-   info += "COHERENCE PROTOCOL: ";
-   if(protocol==MSI)
-      info += "MSI\n";
-   else if(protocol==MESI)
-      info += "MESI\n";
-   else
-      info += "DRAGON\n";
-
-
-   info += "TRACE FILE: " + std::string(fname) + "\n";
-
-   std::cout << info;
-
+   //header_report(cache_size, cache_assoc, blk_size, num_processors, protocol, fname);
 
 
    CacheController *c;
@@ -224,4 +205,28 @@ std::string *csvdat = new std::string;
    if(count>500001)
       std::cerr<< "ERROR OVERLENGTH";
    return EXIT_SUCCESS;
+}
+
+void header_report(int cache_size, int cache_assoc, int blk_size, int num_processors, int protocol, const char *fname) {
+   string info = "===== 506 Personal information =====\n"
+"FirstName (MiddleNames) LastName (Change it to your own name)\n"
+"UnityID (Change it to your own UID)\n"
+"ECE492 Students? YES/NO (Change it according to your own section)\n"
+"===== 506 SMP Simulator configuration =====\n";
+   info += "L1_SIZE: " + to_string(cache_size) + "\n";
+   info += "L1_ASSOC: " + to_string(cache_assoc) + "\n";
+   info += "L1_BLOCKSIZE: " + to_string(blk_size) + "\n";
+   info += "NUMBER OF PROCESSORS: " + to_string(num_processors) + "\n";
+   info += "COHERENCE PROTOCOL: ";
+   if(protocol==MSI)
+      info += "MSI\n";
+   else if(protocol==MESI)
+      info += "MESI\n";
+   else
+      info += "DRAGON\n";
+
+
+   info += "TRACE FILE: " + string(fname) + "\n";
+
+   cout << info;
 }
