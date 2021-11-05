@@ -85,10 +85,15 @@ int main(int argc, char *argv[])
    fo.open("tracedump", std::ios::out);*/
    std::this_thread::sleep_for(std::chrono::milliseconds(100));
    FP1 = fopen (fname, "r");
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
    FP2 = fopen (fname, "r");
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
    FP3 = fopen (fname, "r");
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
    FP4 = fopen (fname, "r");
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
    FP5 = fopen (fname, "r");
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	if(FP1 == 0 || FP2 == 0 || FP3 == 0|| FP4 == 0|| FP5 == 0)
 	{   
 		printf("Trace file problem\n");
@@ -159,7 +164,9 @@ std::string line;
 
       if(pr2 >= 0 && pr2 < (unsigned int) num_processors && (rw == 'r'||rw == 'w')) {
          pr = pr2;
-         addr = (const unsigned long) address;
+         addr = address;
+         if(pr != pr2)
+            std::cerr << "File VALUE READ FAILURE. ABORT.\n";
          if (rw == 'r') {
             c->access(addr, pr, false);}
          else if (rw == 'w'){
