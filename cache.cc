@@ -56,7 +56,7 @@ since this function is an entry point
 to the memory hierarchy (i.e. caches)**/
 void Cache::Access(ulong addr,uchar op)
 {
-	currentCycle++;
+
         	
 	if(op == 'w') writes++;
 	else          reads++;
@@ -122,6 +122,8 @@ cacheLine * Cache::getLRU(ulong addr)
    }   
    for(j=0;j<assoc;j++)
    {
+      cacheLine temp = cache[i][j];
+      temp.getSeq();
 	 if(cache[i][j].getSeq() <= min) { victim = j; min = cache[i][j].getSeq();}
    } 
    assert(victim != assoc);

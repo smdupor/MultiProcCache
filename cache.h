@@ -71,7 +71,7 @@ protected:
    void cat_padded(std::string *str, double n);
 public:
     ulong currentCycle;  
-     
+     void clock(){ currentCycle++; }
     Cache(uint_fast32_t cache_size, uint_fast32_t cache_assoc, uint_fast32_t blocksize, uint_fast8_t proc, uint_fast8_t coh_type );
    ~Cache() {}
    

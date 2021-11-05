@@ -21,7 +21,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	//fstream fp, fo;
+	fstream fo;
 	FILE *FP1;
    FILE *FP2;
    FILE *FP3;
@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
          c = CacheController::instance(cache_size, cache_assoc, blk_size, num_processors, DRAGON);
          break;
    }
-   /*fp.open(fname, std::ios::in);
-   fo.open("tracedump", std::ios::out);*/
+   //fp.open(fname, std::ios::in);
+   fo.open("procnumDump", std::ios::out);
    std::this_thread::sleep_for(std::chrono::milliseconds(100));
    FP1 = fopen (fname, "r");
    std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -171,7 +171,7 @@ std::string line;
             c->access(addr, pr, false);}
          else if (rw == 'w'){
             c->access(addr, pr, true);}
-         //fo << std::to_string(pr)<<  " " << rw << " " << line.substr(4,8)<<std::endl;
+         fo << std::to_string(pr) <<  " " << rw << " " << std::to_string(addr) << std::endl;
       } else
       {
          std::cerr << "File VALUE READ FAILURE. ABORT.\n";

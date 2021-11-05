@@ -23,6 +23,9 @@ for(size_t i=0;i<num_caches;++i) {
 }
 
 void CacheController::access(uint_fast32_t addr, uint_fast8_t proc, bool write) {
+
+
+
    std::vector<cacheLine *> local;
    for(int i =0; i<qty;++i)
       local.emplace_back(caches[i].findLine(addr));
@@ -36,6 +39,9 @@ void CacheController::access(uint_fast32_t addr, uint_fast8_t proc, bool write) 
      case DRAGON:
          dragon_access(addr, proc, write, local);
          break;
+   }
+   for(int i=0;i<qty;++i){
+      caches[i].clock();
    }
 }
 
@@ -168,6 +174,11 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       }
    }
 
+   if(has_E && has_M)
+      std::cerr<<"Collision Between E and M"<<std::endl;
+   if(has_S && has_M)
+      std::cerr<<"Collision Between S and M"<<std::endl;
+
    if(write && has_M) {
       // Case Write and (this) proc is in M
       if (local[proc] && local[proc]->get_state() == M) {
@@ -232,7 +243,7 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
       else{ // case read and other procs in S or e, this proc invalid
          local[proc]=caches[proc].findLineToReplace(addr);
          local[proc]->set_state(S);
-         if(Eloc) {
+         if(has_E && Eloc) {
             Eloc->set_state(S);
             caches[Eloc->get_proc()].intervention_mesi();
          }
