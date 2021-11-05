@@ -100,6 +100,8 @@ public:
    void bus_rdx() {++busrdx;}
    void transfer() {++cc_transfers;}
 
+   void csv_dump(double *stats, std::string *s);
+
 };
 
 #endif

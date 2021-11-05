@@ -31,6 +31,7 @@ public:
    void report();
    static CacheController* instance(uint_fast32_t size, uint_fast32_t assoc, uint_fast32_t blocksize, uint_fast8_t num_caches, uint_fast8_t coherence_type);
    ~CacheController();
+   void csv_dump(std::string *specifics);
 
 };
 

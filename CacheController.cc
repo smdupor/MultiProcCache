@@ -410,13 +410,33 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
 }
 
 void CacheController::report() {
-   uint_fast32_t diff = 0;
    for(int i =0; i<qty;++i) {
-                                     ////////////////////// SWAPPPED from for Cache in caches
       caches[i].printStats();
-      diff += caches[i].getFU();
    }
 }
+
+void CacheController::csv_dump(std::string *specifics) {
+
+   double *stats;
+   stats = (double *) malloc(12*sizeof(double));
+   int i;
+
+   for(i=0;i<12;++i)
+      stats[i]=0;
+
+   for(i =0; i<qty;++i) {
+      caches[i].csv_dump(stats, specifics);
+   }
+
+   stats[4]/= 4;
+
+   for(i=0;i<11;++i) {
+      *specifics += std::to_string(stats[i]);
+      *specifics += ",";
+   }
+   *specifics += std::to_string(stats[i]);
+
+   }
 
 CacheController *
 CacheController::instance(uint_fast32_t size, uint_fast32_t assoc, uint_fast32_t blocksize, uint_fast8_t num_caches,

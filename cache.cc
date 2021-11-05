@@ -201,6 +201,56 @@ void Cache::printStats()
 
 }
 
+void Cache::csv_dump(double *stats, std::string *s)
+{
+
+   *s+= "  ";
+   *s += std::to_string(this->proc);
+   *s+= "  ,";
+   *s+= std::to_string(this->reads);
+   stats[0] += this->reads;
+   *s+= ",";
+   *s+= std::to_string(this->read_misses);
+   stats[1] += this->read_misses;
+   *s+= ",";
+   *s+= std::to_string(this->writes);
+   stats[2] += this->writes;
+   *s+= ",";
+   *s+= std::to_string(this->write_misses);
+   stats[3] += this->write_misses;
+   *s+= ",";
+   *s+= std::to_string((double)std::round(10000*((double)(this->read_misses+this->write_misses))/((double)(this->reads+this->writes)))/100);
+   stats[4] += (double)std::round(10000*((double)(this->read_misses+this->write_misses))/((double)(this->reads+this->writes)))/100;
+   *s+= ",";
+   *s+= std::to_string(this->write_backs);
+   stats[5] += this->write_backs;
+   *s+= ",";
+   *s+= std::to_string(this->cc_transfers);
+   stats[6] += this->cc_transfers;
+   uint_fast32_t mem2;
+   if(this->type == MSI){     mem2= read_misses + write_misses + (busrdx-write_misses) + write_backs;}
+   else if(this->type == MESI){mem2= read_misses + write_misses + (busrdx-write_misses) + write_backs - cc_transfers;}
+   else                       {mem2= read_misses + write_misses + busrdx + write_backs;}
+   *s+= ",";
+   *s+= std::to_string(mem2);
+   stats[7] += mem2;
+   *s+= ",";
+   *s+= std::to_string(this->interventions);
+   stats[8] += this->interventions;
+   *s+= ",";
+   *s+= std::to_string(this->invalidations);
+   stats[9] += this->invalidations;
+   *s+= ",";
+   *s+= std::to_string(this->flushes);
+   stats[10] += this->flushes;
+   *s+= ",";
+   *s+= std::to_string(this->busrdx);
+   stats[11] += this->busrdx;
+   *s+= ",";
+
+}
+
+
 // Attach a numeric value to the end of a string with space padding
 void Cache::cat_padded(std::string *str, uint_fast32_t n) {
    std::string value = std::to_string(n);

@@ -21,7 +21,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	fstream fo;
+
 	FILE *FP1;
    FILE *FP2;
    FILE *FP3;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
          break;
    }
    //fp.open(fname, std::ios::in);
-   fo.open("procnumDump", std::ios::out);
+
    std::this_thread::sleep_for(std::chrono::milliseconds(100));
    FP1 = fopen (fname, "r");
    std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -171,7 +171,7 @@ std::string line;
             c->access(addr, pr, false);}
          else if (rw == 'w'){
             c->access(addr, pr, true);}
-         fo << std::to_string(pr) <<  " " << rw << " " << std::to_string(addr) << std::endl;
+        // fo << std::to_string(pr) <<  " " << rw << " " << std::to_string(addr) << std::endl;
       } else
       {
          std::cerr << "File VALUE READ FAILURE. ABORT.\n";
@@ -198,10 +198,29 @@ std::string line;
    fclose(FP4);
    fclose(FP5);*/
 
-  // fp.close();
-	c->report();
-  // std::cout << count<<std::endl;
-   //std::cout << count<<std::endl;
+
+//	c->report();
+   fstream fo;
+   fo.open("exp_data.csv", std::ios::app);
+
+std::string *csvdat = new std::string;
+   if(protocol==MSI)
+      *csvdat += "MSI,";
+   else if(protocol==MESI)
+      *csvdat += "MESI,";
+   else
+      *csvdat += "DRAGON,";
+
+   *csvdat +=std::to_string(cache_size) + ",";
+   *csvdat += std::to_string(cache_assoc) + ",";
+   *csvdat += std::to_string(blk_size) + ",";
+
+   c->csv_dump(csvdat);
+
+   fo << *csvdat << std::endl;
+
+   fo.close();
+
    if(count>500001)
       std::cerr<< "ERROR OVERLENGTH";
    return EXIT_SUCCESS;
