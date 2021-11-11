@@ -1,6 +1,12 @@
-//
-// Created by smdupor on 10/23/21.
-//
+/**
+ * CacheController.cc encapsulates Source Code Implementations of functionality for the Cache Controller class which
+ * handles all cases of cache coherency across multiple protocols.
+ *
+ * Created on: October 22nd, 2021
+ * Author: Stevan Dupor
+ * Copyright (C) 2021 Stevan Dupor - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited.
+ */
 
 #include "CacheController.h"
 
@@ -13,19 +19,9 @@ qty = num_caches;
 for(size_t i=0;i<num_caches;++i) {
    caches[i] = *new Cache(size, assoc, blocksize, i, coherence_type);
 }
-
-  // DO MSI
-
-   //DO MESI
-
-   // DO DRAGON
-
 }
 
 void CacheController::access(uint_fast32_t addr, uint_fast8_t proc, bool write) {
-
-
-
    std::vector<cacheLine *> local;
    for(int i =0; i<qty;++i)
       local.emplace_back(caches[i].findLine(addr));
@@ -45,6 +41,13 @@ void CacheController::access(uint_fast32_t addr, uint_fast8_t proc, bool write) 
    }
 }
 
+/**
+ * Handle all memory hierarchy accesses when using the MSI Protocol.
+ * @param addr Address to be accessed
+ * @param proc Which processor to use
+ * @param write True if this is a write, false if this is a read
+ * @param local The pertinent (to this operation) cachelines across the available processor cores
+ */
 void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local) {
    bool has_S=false, has_M=false;
    uint_fast8_t num_s=0;
@@ -154,6 +157,13 @@ void CacheController::msi_access(uint_fast32_t addr, uint_fast8_t proc, bool wri
    }
 }
 
+/**
+ * Handle all memory hierarchy accesses when using the MESI Protocol.
+ * @param addr Address to be accessed
+ * @param proc Which processor to use
+ * @param write True if this is a write, false if this is a read
+ * @param local The pertinent (to this operation) cachelines across the available processor cores
+ */
 void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local) {
    bool has_S=false, has_M=false, has_E=false;
    uint_fast8_t num_s=0;
@@ -275,6 +285,13 @@ void CacheController::mesi_access(uint_fast32_t addr, uint_fast8_t proc, bool wr
    }
 }
 
+/**
+ * Handle all memory hierarchy accesses when using the Dragon Protocol.
+ * @param addr Address to be accessed
+ * @param proc Which processor to use
+ * @param write True if this is a write, false if this is a read
+ * @param local The pertinent (to this operation) cachelines across the available processor cores
+ */
 void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool write, std::vector<cacheLine *> local) {
    bool has_SM=false, has_SC=false, has_M=false, has_E=false;
    cacheLine *Mloc, *Eloc, *SMloc;
@@ -409,12 +426,19 @@ void CacheController::dragon_access(uint_fast32_t addr, uint_fast8_t proc, bool 
    }
 }
 
+/**
+ * Execute the statistics report for each Core/Private Cache
+ */
 void CacheController::report() {
    for(int i =0; i<qty;++i) {
       caches[i].printStats();
    }
 }
 
+/**
+ * For Experiments: Outputs datapoints from statistics in Comma Separated Value format
+ * @param specifics The string on which these CSV statistics are concatenated.
+ */
 void CacheController::csv_dump(std::string *specifics) {
 
    double *stats;

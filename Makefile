@@ -1,6 +1,6 @@
 CC = g++
-OPT = -O0
-OPT = -g
+OPT = -O3
+OPT = -s
 WARN = -Wall
 ERR = -Werror
 

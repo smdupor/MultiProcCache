@@ -1,6 +1,12 @@
-//
-// Created by smdupor on 10/23/21.
-//
+/**
+ * CacheController.h encapsulates header functionality for the Cache Controller class which handles all cases of
+ * cache coherency across multiple protocols.
+ *
+ * Created on: October 22nd, 2021
+ * Author: Stevan Dupor
+ * Copyright (C) 2021 Stevan Dupor - All Rights Reserved
+ * Unauthorized copying of this file, via any medium is strictly prohibited.
+ */
 
 #ifndef MULTIPROCCACHE_CACHECONTROLLER_H
 #define MULTIPROCCACHE_CACHECONTROLLER_H
